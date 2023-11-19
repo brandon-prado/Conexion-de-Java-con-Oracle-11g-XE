@@ -1,0 +1,91 @@
+CONNECT system/admin
+CREATE USER agencia_autos IDENTIFIED BY agencia_autos;
+GRANT connect, resource TO agencia_autos;
+CONNECT agencia_autos/agencia_autos
+CREATE TABLE agencia (
+  	id_agencia NUMERIC,
+  	nombre_agencia VARCHAR(40) NOT NULL,
+  	direccion_agencia VARCHAR(40) NOT NULL,
+  	ciudad_agencia VARCHAR(40) NOT NULL,
+  	estado_agencia VARCHAR(40) NOT NULL,
+  	telefono_agencia VARCHAR(13) NOT NULL,
+  	correo_agencia VARCHAR(30) NULL,
+  	facebook_agencia VARCHAR(40) NULL,
+  	rfc_agencia VARCHAR(15) NOT NULL,
+  	pagina_web_agencia VARCHAR(30) NULL,
+	CONSTRAINT pk_agencia_id_agencia PRIMARY KEY (id_agencia),
+	CONSTRAINT uk_agencia_rfc_agencia UNIQUE (rfc_agencia)
+);
+
+CREATE TABLE cliente (
+  	id_cliente NUMERIC,
+  	nombre_cliente VARCHAR(40) NOT NULL,
+  	paterno_cliente VARCHAR(40) NOT NULL,
+  	materno_cliente VARCHAR(40) NOT NULL,
+  	folio_ine VARCHAR(40) NOT NULL,
+  	domicilio_cliente VARCHAR(40) NOT NULL,
+  	correo_cliente VARCHAR(30) NULL,
+  	rfc_cliente VARCHAR(14) NOT NULL,
+  	telefono_cliente VARCHAR(13) NOT NULL,
+  	nombre_aval VARCHAR(40) NOT NULL,
+  	telefono_aval VARCHAR(13) NOT NULL,
+  	licencia_conducir VARCHAR(1) NOT NULL,
+	CONSTRAINT pk_cliente_id_cliente PRIMARY KEY (id_cliente),
+	CONSTRAINT uk_cliente_folio_ine UNIQUE(folio_ine),
+	CONSTRAINT uk_cliente_rfc_cliente UNIQUE(rfc_cliente)
+);
+
+CREATE TABLE garage (
+  	id_garage NUMERIC,
+  	nombre_garage VARCHAR(30) NOT NULL,
+  	direccion_garage VARCHAR(40) NOT NULL,
+  	capacidad_garage NUMERIC NOT NULL,
+  	tipo_garage VARCHAR(20) NOT NULL,
+	CONSTRAINT pk_garage_id_garage PRIMARY KEY (id_garage),
+	CONSTRAINT ck_capacidad_garage CHECK (capacidad_garage >= 0)
+);
+
+CREATE TABLE vehiculo (
+  	id_vehiculo NUMERIC,
+  	id_garage NUMERIC NOT NULL,
+  	no_serie_vehiculo VARCHAR(40) NOT NULL,
+  	matricula_vehiculo VARCHAR(15) NOT NULL,
+  	marca_vehiculo VARCHAR(30) NOT NULL,
+  	modelo_vehiculo VARCHAR(20) NOT NULL,
+  	modelo_anyo VARCHAR(4) NOT NULL,
+  	foto_vehiculo VARCHAR(150) NOT NULL,
+  	disponibilidad CHAR(1) NOT NULL,
+  	tipo_vehiculo VARCHAR(20) NOT NULL,
+  	color_vehiculo VARCHAR(40) NULL,
+  	precio_alquiler NUMERIC NOT NULL,
+  	especificacion_tecnica VARCHAR(40) NULL,
+	CONSTRAINT pk_vehiculo_id_vehiculo PRIMARY KEY (id_vehiculo),
+	CONSTRAINT uk_vehiculo_matricula_vehiculo UNIQUE(matricula_vehiculo),
+	CONSTRAINT ck_precio_alquiler CHECK (precio_alquiler > 500.0),
+	CONSTRAINT ck_vehiculo_disponibilidad CHECK(disponibilidad IN('S','N')),
+	CONSTRAINT fk_id_garage FOREIGN KEY (id_garage) REFERENCES garage(id_garage)
+);
+
+CREATE TABLE reservacion (
+  	id_reservacion NUMERIC NOT NULL,
+  	tiene_reservacion CHAR(1) NOT NULL,
+  	cancelacion_reservacion CHAR(1) NULL,
+  	fecha_inicial_reserv DATE NULL,
+  	fecha_prog_real_inicio DATE NOT NULL,
+  	fecha_fin_reservacion DATE NOT NULL,
+  	fecha_prog_real_fin DATE NOT NULL,
+  	id_agencia NUMERIC NOT NULL,
+  	id_cliente NUMERIC NOT NULL,
+	CONSTRAINT pk_reservacion_id_reservacion PRIMARY KEY (id_reservacion, id_agencia, id_cliente),
+	CONSTRAINT ck_fecha_inicial_reserv CHECK(fecha_inicial_reserv < fecha_fin_reservacion),
+	CONSTRAINT ck_tiene_reservacion CHECK (tiene_reservacion IN('S','N')),
+	CONSTRAINT ck_cancelacion CHECK (cancelacion_reservacion IN('S','N')),
+	CONSTRAINT fk_id_agencia FOREIGN KEY (id_agencia) REFERENCES agencia(id_agencia),
+	CONSTRAINT fk_id_cliente FOREIGN KEY (id_cliente) REFERENCES cliente(id_cliente)
+);
+
+CREATE TABLE reservacion_has_vehiculo (
+  	id_reservacion NUMERIC NOT NULL,
+  	id_vehiculo NUMERIC NOT NULL,
+  	PRIMARY KEY(id_reservacion, id_vehiculo)
+);
